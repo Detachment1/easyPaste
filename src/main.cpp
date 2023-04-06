@@ -4,8 +4,6 @@
 #include "utils.h"
 #include <thread>
 #include <chrono>
-#include <mutex>
-#include <condition_variable>
 
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -30,127 +28,118 @@
 #endif
 
 extern struct tray tray;
-std::mutex main_easyPaste_mutex;
-std::condition_variable main_easyPaste_condition;
-bool easyPasteOn = true;
-bool stop_flag = false;
+EasyPaste* easyPaste = new EasyPaste(0, 5);
 
-static void toggle_cb(struct tray_menu *item)
-{
-  std::unique_lock<std::mutex> ul(main_easyPaste_mutex);
-  printf("toggle cb\n");
-  item->checked = !item->checked;
-  easyPasteOn = item->checked;
-  tray_update(&tray);
-  if (easyPasteOn) 
-  {
-    main_easyPaste_condition.notify_one();
-  }
-}
-
-static void quit_cb(struct tray_menu *item)
-{
-  (void)item;
-  printf("quit cb\n");
-  stop_flag = true;
-  tray_exit();
-  main_easyPaste_condition.notify_all();
-}
-
-static void submenu_cb(struct tray_menu *item)
-{
-  (void)item;
-  printf("submenu: clicked on %s\n", item->text);
-  tray_update(&tray);
-}
-
-void easyPaste_thread()
-{
-  std::string oldData = "init";
-  std::string newData = "init";
-  while (!stop_flag)
-  {
-    // std::cout << stop_flag << std::endl;
-    std::unique_lock<std::mutex> ul(main_easyPaste_mutex);
-    while (!easyPasteOn) {
-      main_easyPaste_condition.wait(ul);
-      if (stop_flag) 
-      {
-        return;
-      }
-    }
-    ul.unlock();
-    newData = getClipboardText();
-    if (newData.empty())
+static void toggle_cb(struct tray_menu *item) {
+    (void)item;
+    printf("change copy type\n");
+    if (easyPaste->copyType == 0)
     {
-      oldData = newData;
-    }
-    if (oldData == newData)
-    {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        easyPaste->copyType = 1;
+        item->text = "remove new lines by ctrl + command + c";
     }
     else
     {
-      newData = removeNewLines(newData);
-      saveTextToClipboard(newData);
-      oldData = newData;
-      std::cout << newData << std::endl;
+        easyPaste->copyType = 0;
+        item->text = "remove new lines by command + c";
     }
-  }
-  return;
+    tray_update(&tray);
 }
+
+static void quit_cb(struct tray_menu *item) {
+    (void) item;
+    printf("quit cb\n");
+    easyPaste->stopLoopThread();
+}
+
+static void submenu_cb(struct tray_menu *item) {
+    (void) item;
+    printf("submenu: clicked on %s\n", item->text);
+    tray_update(&tray);
+}
+
+//void easyPaste_thread() {
+//    std::string oldData = "init";
+//    std::string newData = "init";
+//    while (!stop_flag) {
+//        // std::cout << stop_flag << std::endl;
+//        std::unique_lock<std::mutex> ul(main_easyPaste_mutex);
+//        while (!easyPasteOn) {
+//            main_easyPaste_condition.wait(ul);
+//            if (stop_flag) {
+//                return;
+//            }
+//        }
+//        ul.unlock();
+//        newData = getClipboardText();
+//        if (newData.empty()) {
+//            oldData = newData;
+//        }
+//        if (oldData == newData) {
+//            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+//        } else {
+//            newData = removeNewLines(newData);
+//            saveTextToClipboard(newData);
+//            oldData = newData;
+//            std::cout << newData << std::endl;
+//        }
+//    }
+//    return;
+//}
 
 // Test tray init
 struct tray tray = {
-    .icon = TRAY_ICON1,
+        .icon = TRAY_ICON1,
 #if TRAY_WINAPI
-    .tooltip = "EasyPaste",
+        .tooltip = "EasyPaste",
 #endif
-    .menu =
-        (struct tray_menu[]){
-            {.text = "easyPaste on", .checked = 1, .checkbox = 1, .cb = toggle_cb},
-            {.text = "-"},
-            {.text = "SubMenu",
-             .disabled = 1,
-             .submenu =
-                 (struct tray_menu[]){
-                     {.text = "FIRST", .checked = 1, .checkbox = 1, .cb = submenu_cb},
-                     {.text = "SECOND",
-                      .submenu =
-                          (struct tray_menu[]){
-                              {.text = "THIRD",
-                               .submenu =
-                                   (struct tray_menu[]){
-                                       {.text = "7", .cb = submenu_cb},
-                                       {.text = "-"},
-                                       {.text = "8", .cb = submenu_cb},
-                                       {.text = NULL}}},
-                              {.text = "FOUR",
-                               .submenu =
-                                   (struct tray_menu[]){
-                                       {.text = "5", .cb = submenu_cb},
-                                       {.text = "6", .cb = submenu_cb},
-                                       {.text = NULL}}},
-                              {.text = NULL}}},
-                     {.text = NULL}}},
-            {.text = "-"},
-            {.text = "Quit", .cb = quit_cb},
-            {.text = NULL}},
+        .menu =
+        (struct tray_menu[]) {
+                {.text = "remove new lines by command + c", .cb = toggle_cb},//.checked = 1, .checkbox = 1,
+                {.text = "-"},
+                {.text = "SubMenu",
+                        .disabled = 1,
+                        .submenu =
+                        (struct tray_menu[]) {
+                                {.text = "FIRST", .checked = 1, .checkbox = 1, .cb = submenu_cb},
+                                {.text = "SECOND",
+                                        .submenu =
+                                        (struct tray_menu[]) {
+                                                {.text = "THIRD",
+                                                        .submenu =
+                                                        (struct tray_menu[]) {
+                                                                {.text = "7", .cb = submenu_cb},
+                                                                {.text = "-"},
+                                                                {.text = "8", .cb = submenu_cb},
+                                                                {.text = NULL}}},
+                                                {.text = "FOUR",
+                                                        .submenu =
+                                                        (struct tray_menu[]) {
+                                                                {.text = "5", .cb = submenu_cb},
+                                                                {.text = "6", .cb = submenu_cb},
+                                                                {.text = NULL}}},
+                                                {.text = NULL}}},
+                                {.text = NULL}}},
+                {.text = "-"},
+                {.text = "Quit", .cb = quit_cb},
+                {.text = NULL}},
 };
 
-int main()
-{
-  hide_console();
-  if (tray_init(&tray) < 0)
-  {
-    printf("failed to create tray\n");
-    return 1;
-  }
-  std::thread easyPasteThread(easyPaste_thread);
-  while (tray_loop(0) == 0)
-  {
-    
-  }
-  easyPasteThread.join();
-  return 0;
+
+int main() {
+    if (tray_init(&tray) < 0) {
+        printf("failed to create tray\n");
+        return 1;
+    }
+    std::thread easyPasteThread(&EasyPaste::startLoopThread, easyPaste);
+    while (tray_loop(0) == 0) {
+        if (easyPaste->stopFlag)
+        {
+            break;
+        }
+    }
+    easyPasteThread.join();
+    delete easyPaste;
+    tray_exit();
+    return 0;
 }
