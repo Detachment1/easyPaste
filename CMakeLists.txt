@@ -2,9 +2,10 @@ cmake_minimum_required(VERSION 3.13 FATAL_ERROR) # target_link_directories
 
 project(easyPaste)
 
+set(CMAKE_CXX_STANDARD 11)
 # set a project version
 set (easyPaste_VERSION_MAJOR 1)
-set (easyPaste_VERSION_MINOR 0)
+set (easyPaste_VERSION_MINOR 1)
 set (easyPaste_VERSION_PATCH 0)
 set (easyPaste_VERSION "${easyPaste_VERSION_MAJOR}.${easyPaste_VERSION_MINOR}.${easyPaste_VERSION_PATCH}")
 
