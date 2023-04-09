@@ -3,7 +3,6 @@
 #include <iostream>
 #include "utils.h"
 #include <thread>
-#include <chrono>
 
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -22,9 +21,13 @@
 #elif TRAY_APPKIT
 #define TRAY_ICON1 "../sources/icon.png"
 #define TRAY_ICON2 "../sources/icon.png"
+#define COPY_TYPE_0_TEXT "remove new lines by command + c"
+#define COPY_TYPE_1_TEXT "remove new lines by ctrl + command + c"
 #elif TRAY_WINAPI
 #define TRAY_ICON1 "../sources/icon.ico"
 #define TRAY_ICON2 "../sources/icon.ico"
+#define COPY_TYPE_0_TEXT "remove new lines by ctrl + c"
+#define COPY_TYPE_1_TEXT "remove new lines by ctrl + alt + c"
 #endif
 
 extern struct tray tray;
@@ -36,19 +39,19 @@ static void toggle_cb(struct tray_menu *item) {
     if (easyPaste->copyType == 0)
     {
         easyPaste->copyType = 1;
-        item->text = "remove new lines by ctrl + command + c";
+        item->text = COPY_TYPE_1_TEXT;
     }
     else
     {
         easyPaste->copyType = 0;
-        item->text = "remove new lines by command + c";
+        item->text = COPY_TYPE_0_TEXT;
     }
     tray_update(&tray);
 }
 
 static void quit_cb(struct tray_menu *item) {
     (void) item;
-    printf("quit cb\n");
+    printf("quit\n");
     easyPaste->stopLoopThread();
 }
 
@@ -58,36 +61,6 @@ static void submenu_cb(struct tray_menu *item) {
     tray_update(&tray);
 }
 
-//void easyPaste_thread() {
-//    std::string oldData = "init";
-//    std::string newData = "init";
-//    while (!stop_flag) {
-//        // std::cout << stop_flag << std::endl;
-//        std::unique_lock<std::mutex> ul(main_easyPaste_mutex);
-//        while (!easyPasteOn) {
-//            main_easyPaste_condition.wait(ul);
-//            if (stop_flag) {
-//                return;
-//            }
-//        }
-//        ul.unlock();
-//        newData = getClipboardText();
-//        if (newData.empty()) {
-//            oldData = newData;
-//        }
-//        if (oldData == newData) {
-//            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-//        } else {
-//            newData = removeNewLines(newData);
-//            saveTextToClipboard(newData);
-//            oldData = newData;
-//            std::cout << newData << std::endl;
-//        }
-//    }
-//    return;
-//}
-
-// Test tray init
 struct tray tray = {
         .icon = TRAY_ICON1,
 #if TRAY_WINAPI
@@ -95,7 +68,7 @@ struct tray tray = {
 #endif
         .menu =
         (struct tray_menu[]) {
-                {.text = "remove new lines by command + c", .cb = toggle_cb},//.checked = 1, .checkbox = 1,
+                {.text = COPY_TYPE_0_TEXT, .cb = toggle_cb},//.checked = 1, .checkbox = 1,
                 {.text = "-"},
                 {.text = "SubMenu",
                         .disabled = 1,
