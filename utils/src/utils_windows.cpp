@@ -50,10 +50,7 @@ LRESULT CALLBACK filterKeyBoardEvent(int nCode, WPARAM wParam, LPARAM lParam)
     {
         PostMessage(NULL, 0x400, wParam, lParam);
     }
-    else if ((p->flags & LLKHF_INJECTED) != 0 && p->dwExtraInfo == 0x02)
-    {
-        PostMessage(NULL, 0x401, wParam, lParam);
-    }
+
     if (p->vkCode == 'C' && (p->flags & LLKHF_INJECTED) == 0 && (GetAsyncKeyState(VK_CONTROL) & (1 << 15)) && (GetAsyncKeyState(VK_MENU) & (1 << 15)) && wParam == WM_KEYDOWN)
     {
         INPUT inputs[8] = {};
@@ -123,70 +120,7 @@ LRESULT CALLBACK filterKeyBoardEvent(int nCode, WPARAM wParam, LPARAM lParam)
     }
     else if (p->vkCode == 'C' && (p->flags & LLKHF_INJECTED) == 0 && (GetAsyncKeyState(VK_CONTROL) & (1 << 15)) && wParam == WM_KEYDOWN)
     {
-        INPUT inputs[8] = {};
-
-        inputs[0].type = INPUT_KEYBOARD;
-        inputs[0].ki.wScan = 0;
-        inputs[0].ki.dwFlags = KEYEVENTF_KEYUP;
-        inputs[0].ki.time = 0;
-        inputs[0].ki.dwExtraInfo = 0;
-        inputs[0].ki.wVk = 'C';
-
-        inputs[1].type = INPUT_KEYBOARD;
-        inputs[1].ki.wScan = 0;
-        inputs[1].ki.dwFlags = KEYEVENTF_KEYUP;
-        inputs[1].ki.time = 0;
-        inputs[1].ki.dwExtraInfo = 0;
-        inputs[1].ki.wVk = VK_CONTROL;
-
-        inputs[2].type = INPUT_KEYBOARD;
-        inputs[2].ki.wScan = 0;
-        inputs[2].ki.dwFlags = 0;
-        inputs[2].ki.time = 0;
-        inputs[2].ki.dwExtraInfo = 0;
-        inputs[2].ki.wVk = VK_CONTROL;
-
-        inputs[3].type = INPUT_KEYBOARD;
-        inputs[3].ki.wScan = 0;
-        inputs[3].ki.dwFlags = 0;
-        inputs[3].ki.time = 0;
-        inputs[3].ki.dwExtraInfo = 0;
-        inputs[3].ki.wVk = 'C';
-
-        inputs[4].type = INPUT_KEYBOARD;
-        inputs[4].ki.wScan = 0;
-        inputs[4].ki.dwFlags = KEYEVENTF_KEYUP;
-        inputs[4].ki.time = 0;
-        inputs[4].ki.dwExtraInfo = 0;
-        inputs[4].ki.wVk = 'C';
-
-        inputs[5].type = INPUT_KEYBOARD;
-        inputs[5].ki.wScan = 0;
-        inputs[5].ki.dwFlags = KEYEVENTF_KEYUP;
-        inputs[5].ki.time = 0;
-        inputs[5].ki.dwExtraInfo = 0;
-        inputs[5].ki.wVk = VK_CONTROL;
-
-        inputs[6].type = INPUT_KEYBOARD;
-        inputs[6].ki.wScan = 0;
-        inputs[6].ki.dwFlags = 0;
-        inputs[6].ki.time = 0;
-        inputs[6].ki.dwExtraInfo = 0;
-        inputs[6].ki.wVk = VK_CONTROL;
-
-        inputs[7].type = INPUT_KEYBOARD;
-        inputs[7].ki.wScan = 0;
-        inputs[7].ki.dwFlags = 0;
-        inputs[7].ki.time = 0;
-        inputs[7].ki.dwExtraInfo = 0x02;
-        inputs[7].ki.wVk = 'C';
-
-        UINT uSent = SendInput(8, inputs, sizeof(INPUT));
-        if (uSent != 8)
-        {
-            printf("fail to press key\n");
-        }
-        return 1;
+        PostMessage(NULL, 0x401, wParam, lParam);
     }
 
     return CallNextHookEx(NULL, nCode, wParam, lParam);
