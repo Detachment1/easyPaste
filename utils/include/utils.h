@@ -2,7 +2,7 @@
 // Created by Kairan Liang on 2023/3/22.
 //
 #include <string>
-#include <stdatomic.h>
+#include <atomic>
 
 #ifndef EASYPASTE_COPYPASTE_H
 #define EASYPASTE_COPYPASTE_H

@@ -136,12 +136,15 @@ void monitorKeyBoard(EasyPaste *easyPaste) {
         if ((msg.message == 0x400 && easyPaste->copyType == 1) || (msg.message == 0x401 && easyPaste->copyType == 0))
         {
             //It is very important to make sure the copy event has finished. Do not remove sleep()!
-            Sleep(100);
+            Sleep(500);
             std::string newData = getClipboardText();
             std::cout << newData << std::endl;
-            newData = removeNewLines(newData);
-            saveTextToClipboard(newData);
-            std::cout << getClipboardText() << std::endl;
+            if (newData != "")
+            {
+                newData = removeNewLines(newData);
+                saveTextToClipboard(newData);
+                std::cout << getClipboardText() << std::endl;
+            }
         }
         else if (msg.message == 0x500)
         {

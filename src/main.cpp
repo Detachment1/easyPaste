@@ -100,6 +100,7 @@ struct tray tray = {
 
 
 int main() {
+    hide_console();
     if (tray_init(&tray) < 0) {
         printf("failed to create tray\n");
         return 1;
